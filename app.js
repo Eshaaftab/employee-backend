@@ -15,7 +15,12 @@ app.get('/api/employees', (req, res) => {
 
 // POST new employee
 app.post('/api/employees', (req, res) => {
-  const newEmp = { id: Date.now().toString(), ...req.body };
+  const newEmp = {
+      id: Date.now().toString(),
+      name: req.body.name,
+      position: req.body.position,
+      department: req.body.department
+    };
   employees.push(newEmp);
   res.status(201).json(newEmp);
 });
@@ -25,7 +30,12 @@ app.put('/api/employees/:id', (req, res) => {
   const id = req.params.id;
   const index = employees.findIndex(emp => emp.id === id);
   if (index !== -1) {
-    employees[index] = { id, ...req.body };
+    employees[index] = {
+      id: id,
+      name: req.body.name,
+      position: req.body.position,
+      department: req.body.department
+    };
     return res.json(employees[index]);
   }
   res.status(404).json({ message: 'Employee not found' });
