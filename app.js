@@ -1,61 +1,82 @@
 const express = require('express');
 const cors = require('cors');
+
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
 
-let employees = []; // In-memory store
+// ===== In-memory store =====
+let employees = [];
 
-// GET all employees
+// ===== Routes =====
+
+// ✅ GET all employees
 app.get('/api/employees', (req, res) => {
   res.json(employees);
 });
 
-// POST new employee
+// ✅ POST new employee
 app.post('/api/employees', (req, res) => {
+  const { name, position, department } = req.body;
+
+  if (!name || !position || !department) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
   const newEmp = {
-      id: Date.now().toString(),
-      name: req.body.name,
-      position: req.body.position,
-      department: req.body.department
-    };
+    id: Date.now().toString(),
+    name,
+    position,
+    department,
+  };
+
   employees.push(newEmp);
   res.status(201).json(newEmp);
 });
 
-// PUT - full update
+// ✅ PUT - full update
 app.put('/api/employees/:id', (req, res) => {
   const id = req.params.id;
+  const { name, position, department } = req.body;
+
   const index = employees.findIndex(emp => emp.id === id);
-  if (index !== -1) {
-    employees[index] = {
-      id: id,
-      name: req.body.name,
-      position: req.body.position,
-      department: req.body.department
-    };
-    return res.json(employees[index]);
+  if (index === -1) {
+    return res.status(404).json({ message: 'Employee not found' });
   }
-  res.status(404).json({ message: 'Employee not found' });
+
+  employees[index] = { id, name, position, department };
+  res.json(employees[index]);
 });
 
-// PATCH - partial update
+// ✅ PATCH - partial update
 app.patch('/api/employees/:id', (req, res) => {
   const id = req.params.id;
   const employee = employees.find(emp => emp.id === id);
-  if (employee) {
-    Object.assign(employee, req.body);
-    return res.json(employee);
+
+  if (!employee) {
+    return res.status(404).json({ message: 'Employee not found' });
   }
-  res.status(404).json({ message: 'Employee not found' });
+
+  Object.assign(employee, req.body);
+  res.json(employee);
 });
 
-// DELETE
+// ✅ DELETE employee
 app.delete('/api/employees/:id', (req, res) => {
-  employees = employees.filter(emp => emp.id !== req.params.id);
-  res.json({ message: 'Deleted' });
+  const id = req.params.id;
+  const exists = employees.some(emp => emp.id === id);
+
+  if (!exists) {
+    return res.status(404).json({ message: 'Employee not found' });
+  }
+
+  employees = employees.filter(emp => emp.id !== id);
+  res.json({ message: 'Employee deleted successfully.' });
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// ===== Start server =====
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
